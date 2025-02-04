@@ -25,6 +25,7 @@ jobs:
           opam install . --deps-only --with-test
           opam install alcotest
           opam install graphics
+          opam install yojson
           opam exec -- dune build
 
       - name: Run tests

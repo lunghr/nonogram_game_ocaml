@@ -15,6 +15,7 @@ depends: [
   "odoc" {with-doc}
   "alcotest" {with-test}
   "graphics"
+  "yojson"
 ]
 build: [
   ["dune" "subst"] {dev}
