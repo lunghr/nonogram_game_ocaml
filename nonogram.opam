@@ -13,9 +13,6 @@ depends: [
   "ocaml"
   "dune" {>= "3.16"}
   "odoc" {with-doc}
-  "alcotest" {with-test}
-  "graphics"
-  "yojson"
 ]
 build: [
   ["dune" "subst"] {dev}

@@ -9,6 +9,7 @@ type lvl = {
   board : cell list list;
   rows : int list list;
   cols : int list list;
+  colors : (int * int * int) list list;
 }
 
 let cell_of_string s =
@@ -24,6 +25,18 @@ let board_of_json json =
            |> List.map (fun cell -> cell_of_string (to_string cell)))
   in
   List.rev board
+
+let parse_colors json =
+  json
+  |> to_list
+  |> List.map (fun row ->
+         row
+         |> to_list
+         |> List.map (fun color ->
+                match to_list color with
+                | [ r; g; b ] -> (to_int r, to_int g, to_int b)
+                | _ -> failwith "Неверный формат цвета"))
+  |> List.rev
 
 let calculate_filled_cells_in_every_column board =
   let size = List.length board in
@@ -79,12 +92,13 @@ let lvl_of_json json =
   let rows = calculate_filled_cells_in_every_row board in
   (*  List.iter (fun row -> List.iter (Printf.printf "%d ") row; Printf.printf "\n") rows; *)
   let cols = calculate_filled_cells_in_every_column board in
+  let colors = json |> member "colors" |> parse_colors in
   (*  List.iter *)
   (*    (fun col -> *)
   (*      List.iter (Printf.printf "%d ") col; *)
   (*      Printf.printf "\n") *)
   (*    cols; *)
-  { lvl_name; board_size; board; rows; cols }
+  { lvl_name; board_size; board; rows; cols; colors }
 
 let upload_lvl lvl_name =
   let filename = "levels/" ^ lvl_name ^ ".json" in

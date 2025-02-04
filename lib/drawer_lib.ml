@@ -25,10 +25,14 @@ let draw_grid size =
     lineto (offset_x + (size * cell_size)) y
   done
 
-let draw_cell x y cell size =
+let calculate_cell_coordinates x y size =
   let offset_x, offset_y = count_offsets size cell_size in
   let x = offset_x + (x * cell_size) in
   let y = offset_y + (y * cell_size) in
+  (x, y)
+
+let draw_cell x y cell size =
+  let x, y = calculate_cell_coordinates x y size in
   match cell with
   | Filled ->
       set_color (rgb 39 44 60);
@@ -232,3 +236,48 @@ let handle_click game_board lvl lives =
               (update_board game_board Empty x y, lives - 1)
           | Unknown -> (game_board, lives))
       | _ -> (game_board, lives))
+
+let load_end_screen img_name =
+  clear_graph ();
+  moveto (size_x () / 2) (size_y () / 2);
+  let img = scale_image (load_ppm ("graphic/" ^ img_name ^ ".ppm")) 600 252 in
+  draw_image img ((size_x () - 600) / 2) ((size_y () - 252) / 2)
+
+let lose () =
+  load_end_screen "lose";
+  let _ = wait_next_event [ Button_down ] in
+  clear_graph ()
+
+let check_win game_board lvl =
+  List.for_all2 (fun row1 row2 -> compare_rows row1 row2) game_board lvl.board
+
+let paint_board lvl =
+  let size = List.length lvl.board in
+  List.iteri
+    (fun i row ->
+      List.iteri
+        (fun j _ ->
+          let x, y = calculate_cell_coordinates j i size in
+          let r, g, b = List.nth (List.nth lvl.colors i) j in
+          set_color (rgb r g b);
+          fill_rect x y cell_size cell_size)
+        row)
+    lvl.board
+
+let display_next_level_button () =
+  let img = scale_image (load_ppm "graphic/next_level.ppm") 200 100 in
+  draw_image img (size_x () - 300) 70
+
+let next_level lvl =
+  paint_board lvl;
+  display_next_level_button ();
+  let status = wait_next_event [ Button_down ] in
+  let x, y = (status.mouse_x, status.mouse_y) in
+  x >= size_x () - 300 && x <= size_x () - 100 && y >= 70 && y <= 170
+
+let win lvl =
+  paint_board lvl;
+  let _ = wait_next_event [ Button_down ] in
+  load_end_screen "win";
+  let _ = wait_next_event [ Button_down ] in
+  exit 0
