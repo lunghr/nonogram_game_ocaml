@@ -1,0 +1,16 @@
+{
+  "name": "sushi",
+  "board_size": 10,
+  "board": [
+    ["Empty", "Empty", "Empty", "Filled", "Empty", "Empty", "Filled", "Empty", "Empty", "Empty"],
+    ["Empty", "Empty", "Empty", "Filled", "Empty", "Empty", "Filled", "Empty", "Empty", "Empty"],
+    ["Empty", "Empty", "Empty", "Filled", "Empty", "Empty", "Filled", "Empty", "Empty", "Empty"],
+    ["Empty", "Filled","Filled","Filled","Filled","Filled","Filled","Filled", "Filled","Empty"],
+    ["Filled","Filled", "Filled","Filled","Filled","Filled","Filled","Filled","Filled","Filled"],
+    ["Filled","Filled", "Empty", "Filled", "Empty", "Empty", "Filled", "Empty", "Filled", "Filled"],
+    ["Empty", "Empty","Filled","Filled","Filled","Filled","Filled","Filled", "Empty","Empty"],
+    ["Empty", "Filled","Filled","Filled","Filled","Filled","Filled","Filled", "Filled","Empty"],
+    ["Empty", "Empty", "Empty", "Filled", "Empty", "Empty", "Filled", "Empty", "Empty", "Empty"],
+    ["Empty", "Empty", "Empty", "Filled", "Empty", "Empty", "Filled", "Empty", "Empty", "Empty"]
+  ]
+}

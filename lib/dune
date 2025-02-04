@@ -1,0 +1,19 @@
+(library
+ (name ppm_parser)
+ (modules ppm_parser)
+ (libraries graphics))
+
+(library
+ (name drawer_lib)
+ (modules drawer_lib)
+ (libraries graphics ppm_parser image_generator))
+
+(library
+ (name image_generator)
+ (modules image_generator)
+ (libraries ppm_parser graphics yojson))
+
+(library
+ (name game_logic)
+ (modules game_logic)
+ (libraries graphics drawer_lib image_generator ppm_parser yojson))

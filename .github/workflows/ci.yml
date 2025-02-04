@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  checks: write
+  pull-requests: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up OCaml
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: 5
+
+      - name: Install dependencies
+        run: |
+          opam install . --deps-only --with-test
+          opam install alcotest
+          opam install graphics
+          opam exec -- dune build
+
+      - name: Run tests
+        run: opam exec -- dune runtest
+        env:
+          REPORT_PATH: ${{ github.workspace }}_build/report.xml
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up OCaml
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: 5.0.0
+
+      - name: Lint documentation
+        uses: ocaml/setup-ocaml/lint-doc@v3
+
+      - name: Lint formatting
+        uses: ocaml/setup-ocaml/lint-fmt@v3
+
+      - name: Lint opam
+        uses: ocaml/setup-ocaml/lint-opam@v3
