@@ -251,7 +251,7 @@ let lose () =
 let check_win game_board lvl =
   List.for_all2 (fun row1 row2 -> compare_rows row1 row2) game_board lvl.board
 
-let paint_board lvl =
+let colour_board lvl =
   let size = List.length lvl.board in
   List.iteri
     (fun i row ->
@@ -269,14 +269,14 @@ let display_next_level_button () =
   draw_image img (size_x () - 300) 70
 
 let next_level lvl =
-  paint_board lvl;
+  colour_board lvl;
   display_next_level_button ();
   let status = wait_next_event [ Button_down ] in
   let x, y = (status.mouse_x, status.mouse_y) in
   x >= size_x () - 300 && x <= size_x () - 100 && y >= 70 && y <= 170
 
 let win lvl =
-  paint_board lvl;
+  colour_board lvl;
   let _ = wait_next_event [ Button_down ] in
   load_end_screen "win";
   let _ = wait_next_event [ Button_down ] in
