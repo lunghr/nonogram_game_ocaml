@@ -84,25 +84,15 @@ let calculate_filled_cells_in_every_row board =
 
 let lvl_of_json json =
   let lvl_name = json |> member "name" |> to_string in
-  (*  Printf.printf "lvl_name: %s\n" lvl_name; *)
   let board_size = json |> member "board_size" |> to_int in
-  (*  Printf.printf "board_size: %d\n" board_size; *)
   let board = json |> member "board" |> board_of_json in
-  (*  Printf.printf "board: %d\n" (List.length board); *)
   let rows = calculate_filled_cells_in_every_row board in
-  (*  List.iter (fun row -> List.iter (Printf.printf "%d ") row; Printf.printf "\n") rows; *)
   let cols = calculate_filled_cells_in_every_column board in
   let colors = json |> member "colors" |> parse_colors in
-  (*  List.iter *)
-  (*    (fun col -> *)
-  (*      List.iter (Printf.printf "%d ") col; *)
-  (*      Printf.printf "\n") *)
-  (*    cols; *)
   { lvl_name; board_size; board; rows; cols; colors }
 
 let upload_lvl lvl_name =
   let filename = "levels/" ^ lvl_name ^ ".json" in
-  (*  Printf.printf "file with name %s loaded\n" filename; *)
   let json = from_file filename in
   lvl_of_json json
 

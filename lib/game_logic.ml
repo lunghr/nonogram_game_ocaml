@@ -1,12 +1,13 @@
 open Drawer_lib
 open Image_generator
 open Graphics
+open Math
 
 let rec run_lvl board lvl lives lvl_num =
   match lives with
   | 0 ->
       lose ();
-      new_game "1"
+      new_game lvl_num
   | _ -> (
       match check_win board lvl with
       | true -> (

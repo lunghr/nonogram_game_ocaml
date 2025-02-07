@@ -6,7 +6,7 @@
 (library
  (name drawer_lib)
  (modules drawer_lib)
- (libraries graphics ppm_parser image_generator))
+ (libraries graphics ppm_parser image_generator math))
 
 (library
  (name image_generator)
@@ -16,4 +16,9 @@
 (library
  (name game_logic)
  (modules game_logic)
- (libraries graphics drawer_lib image_generator ppm_parser yojson))
+ (libraries graphics drawer_lib image_generator ppm_parser yojson math))
+
+(library
+ (name math)
+ (modules math)
+ (libraries graphics ppm_parser image_generator yojson))

@@ -1,4 +1,4 @@
 (executable
  (public_name nonogram)
  (name main)
- (libraries graphics ppm_parser drawer_lib image_generator game_logic))
+ (libraries graphics ppm_parser drawer_lib image_generator game_logic yojson))

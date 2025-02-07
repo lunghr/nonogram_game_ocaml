@@ -1,14 +1,7 @@
 open Graphics
 open Ppm_parser
 open Image_generator
-
-let cell_size = 60
-
-let count_offsets size cell_size =
-  let board_size = size * cell_size in
-  let offset_x = (size_x () - board_size) / 2 in
-  let offset_y = ((size_y () - board_size) / 2) - 40 in
-  (offset_x, offset_y)
+open Math
 
 let draw_grid size =
   set_color (rgb 178 183 200);
@@ -24,12 +17,6 @@ let draw_grid size =
     moveto offset_x y;
     lineto (offset_x + (size * cell_size)) y
   done
-
-let calculate_cell_coordinates x y size =
-  let offset_x, offset_y = count_offsets size cell_size in
-  let x = offset_x + (x * cell_size) in
-  let y = offset_y + (y * cell_size) in
-  (x, y)
 
 let draw_cell x y cell size =
   let x, y = calculate_cell_coordinates x y size in
@@ -66,7 +53,6 @@ let print_numbers rows cols =
           (offset_x - (cell_size / 2 * i) - 20)
           (offset_y + ((cell_size * row_index) + 20));
         set_color (rgb 39 44 60);
-        set_text_size 20;
         draw_string (string_of_int x);
         print_row_numbers xs row_index (i + 1)
   in
@@ -79,8 +65,6 @@ let print_numbers rows cols =
           (offset_x + (cell_size * col_index) + 30)
           (offset_y + (size * cell_size) + (cell_size / 2 * col_size) - 16);
         set_color (rgb 39 44 60);
-        Graphics.set_font "fixed";
-        Graphics.set_text_size 2;
         draw_string (string_of_int x);
         print_col_numbers xs col_index (i + 1)
   in
@@ -95,30 +79,6 @@ let generate_blank_board size =
     | n -> aux (acc @ [ List.init size (fun _ -> Unknown) ]) (n - 1)
   in
   aux [] size
-
-let check_hitting x y size =
-  let offset_x, offset_y = count_offsets size cell_size in
-  x >= offset_x
-  && x <= offset_x + (size * cell_size)
-  && y >= offset_y
-  && y <= offset_y + (size * cell_size)
-
-let find_cell i row =
-  let rec aux j = function
-    | [] -> Unknown
-    | x :: xs ->
-        if j = i then
-          x
-        else
-          aux (j + 1) xs
-  in
-  aux 0 row
-
-let count_heart_offsets size =
-  let _, offset_y = count_offsets size cell_size in
-  let x = (size_x () - 320) / 2 in
-  let y = size_y () - ((size_y () - (offset_y + (size * cell_size))) / 2) in
-  (x, y)
 
 let draw_hearts board =
   let heart = scale_image (load_ppm "graphic/heart.ppm") 100 100 in
@@ -137,70 +97,40 @@ let dec_heart board available_hearts =
   let x, y = count_heart_offsets (List.length board) in
   draw_image heart (x + (110 * available_hearts)) y
 
-let update_board game_board target_cell x y =
-  List.mapi
-    (fun i row ->
-      match i with
-      | i when i = y ->
-          List.mapi
-            (fun j cell ->
-              match j with j when j = x -> target_cell | _ -> cell)
-            row
-      | _ -> row)
-    game_board
+let print_cross j i size board lvl_board =
+  let cell = List.nth (List.nth lvl_board i) j in
+  draw_cell j i cell size;
+  draw_grid size;
+  update_board board cell j i
 
-let compare_rows row1 row2 =
-  let rec aux acc = function
-    | [], [] -> acc
-    | x :: xs, y :: ys -> aux (acc && x = y) (xs, ys)
-    | _ -> false
-  in
-  aux true (row1, row2)
-
-let print_row_crosses game_board lvl =
-  let filled_rows = check_row_filling game_board lvl in
+let update_crosses game_board lvl get_cells check_filling swap_coords =
+  let filled = check_filling game_board lvl in
   let size = List.length game_board in
   List.fold_left
     (fun acc_board (i, _) ->
-      if
-        List.exists (fun cell -> cell = Unknown) (List.nth acc_board i)
-        && List.nth filled_rows i
-      then
-        List.fold_left
-          (fun acc_board (j, cell) ->
-            draw_cell j i cell size;
-            draw_grid size;
-            update_board acc_board cell j i)
-          acc_board
-          (List.mapi (fun j cell -> (j, cell)) (List.nth lvl.board i))
-      else
-        acc_board)
-    game_board
-    (List.mapi (fun i row -> (i, row)) lvl.board)
-
-let collect_column board i = List.map (fun row -> List.nth row i) board
-
-let print_column_crosses game_board lvl =
-  let filled_columns = check_column_filling game_board lvl in
-  let size = List.length game_board in
-  List.fold_left
-    (fun acc_board (i, _) ->
-      if
-        List.exists (fun cell -> cell = Unknown) (collect_column acc_board i)
-        && List.nth filled_columns i
-      then
+      if check_requirements get_cells acc_board filled i then
         List.fold_left
           (fun acc_board (j, _) ->
-            let cell = List.nth (List.nth lvl.board j) i in
-            draw_cell i j cell size;
-            draw_grid size;
-            update_board acc_board cell i j)
+            let x, y = swap_coords i j in
+            print_cross x y size acc_board lvl.board)
           acc_board
-          (List.mapi (fun j cell -> (j, cell)) (List.nth lvl.board i))
+          (List.mapi (fun j cell -> (j, cell)) (get_cells lvl.board i))
       else
         acc_board)
     game_board
     (List.mapi (fun i row -> (i, row)) lvl.board)
+
+let print_row_crosses game_board lvl =
+  update_crosses game_board lvl
+    (fun board i -> List.nth board i)
+    check_row_filling
+    (fun i j -> (j, i))
+
+let print_column_crosses game_board lvl =
+  update_crosses game_board lvl
+    (fun board i -> List.map (fun row -> List.nth row i) board)
+    check_column_filling
+    (fun i j -> (i, j))
 
 let handle_click game_board lvl lives =
   let solution_board = lvl.board in
@@ -237,20 +167,6 @@ let handle_click game_board lvl lives =
           | Unknown -> (game_board, lives))
       | _ -> (game_board, lives))
 
-let load_end_screen img_name =
-  clear_graph ();
-  moveto (size_x () / 2) (size_y () / 2);
-  let img = scale_image (load_ppm ("graphic/" ^ img_name ^ ".ppm")) 600 252 in
-  draw_image img ((size_x () - 600) / 2) ((size_y () - 252) / 2)
-
-let lose () =
-  load_end_screen "lose";
-  let _ = wait_next_event [ Button_down ] in
-  clear_graph ()
-
-let check_win game_board lvl =
-  List.for_all2 (fun row1 row2 -> compare_rows row1 row2) game_board lvl.board
-
 let colour_board lvl =
   let size = List.length lvl.board in
   List.iteri
@@ -274,6 +190,17 @@ let next_level lvl =
   let status = wait_next_event [ Button_down ] in
   let x, y = (status.mouse_x, status.mouse_y) in
   x >= size_x () - 300 && x <= size_x () - 100 && y >= 70 && y <= 170
+
+let load_end_screen img_name =
+  clear_graph ();
+  moveto (size_x () / 2) (size_y () / 2);
+  let img = scale_image (load_ppm ("graphic/" ^ img_name ^ ".ppm")) 600 252 in
+  draw_image img ((size_x () - 600) / 2) ((size_y () - 252) / 2)
+
+let lose () =
+  load_end_screen "lose";
+  let _ = wait_next_event [ Button_down ] in
+  clear_graph ()
 
 let win lvl =
   colour_board lvl;
