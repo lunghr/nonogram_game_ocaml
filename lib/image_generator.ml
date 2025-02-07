@@ -3,6 +3,8 @@ open Yojson.Safe
 
 type cell = Filled | Empty | Unknown
 
+type board = cell list list
+
 type lvl = {
   lvl_name : string;
   board_size : int;
